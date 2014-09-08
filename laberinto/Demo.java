@@ -47,7 +47,7 @@ public class Demo extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		contentPane = new JPanel();
-		contentPane.setBackground(Color.WHITE);		
+		contentPane.setBackground(Color.GRAY);		
 		contentPane.setLayout(null);
 		contentPane.setSize(this.getHeight(), this.getWidth());
 		setContentPane(contentPane);
@@ -57,20 +57,7 @@ public class Demo extends JFrame {
 		createPlayer(contentPane, dimension, dimension);
 		createGoal(contentPane, player, dimension, dimension);
 		//wallMaker(contentPane, dimension, dimension);
-		TimerTask timertask = new TimerTask() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				if(timm%10==0)
-				{
-					/*for(int i=contentPane.countComponents()-1;i>2;i++)
-						contentPane.remove(wall);*/
-					//wallMaker(contentPane, dimension, dimension);
-				}
-			}
-		};
-		//timer.scheduleAtFixedRate(timertask, 0, 1000);
+		
 		contentPane.setFocusable(true);
 		contentPane.requestFocusInWindow();
 		
@@ -108,20 +95,46 @@ public class Demo extends JFrame {
 				}
 
 				if((winner_yet(player, goal)))
+				{
+					walls.stop();timer.cancel();
 					JOptionPane.showMessageDialog(null, "You Won!!!");
+				}
 			}
 		});
 		
 		
-		(new walls()).start();
+		walls= new walls();
+		
+		walls.start();
+		//walls.stop();
+		TimerTask timertask = new TimerTask() {
+			
+			@SuppressWarnings("deprecation")
+			@Override
+			public void run() {
+				if(timm%30==0)
+				{
+					//System.out.println(contentPane.getComponent(1).getName());
+					
+					walls.refresh();
+					//System.out.println("entra");
+					//timer.cancel();
+				}timm++;
+			}
+		};
+
+		timer.scheduleAtFixedRate(timertask, 0, 10);
 		
 	}
+	walls walls;
+	
 
 	
 	private void createPlayer(JPanel board, int height, int width) {
 		int rows = board.getHeight() / height, cols = board.getWidth() / width;
 		
 		player = new JPanel();
+		player.setName("player");
 		player.setBackground(Color.cyan);
 		player.setBounds(rand.nextInt(rows) * height, rand.nextInt(cols) * width, height, width);
 		board.add(player);
@@ -137,6 +150,7 @@ public class Demo extends JFrame {
 		}while(pos_x == point.getX() || pos_y == point.getY());
 		
 		goal = new JPanel();
+		goal.setName("goal");
 		goal.setBackground(Color.red);
 		goal.setBounds(pos_x, pos_y, height, width);
 		board.add(goal);
@@ -144,7 +158,6 @@ public class Demo extends JFrame {
 
 	private boolean winner_yet(JPanel x, JPanel y)
 	{
-		timer.cancel();
 		return x.getLocation().equals(y.getLocation());
 	}
 }
