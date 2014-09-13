@@ -43,7 +43,7 @@ public class Demo extends JFrame {
 	public static int dimension = 20/2,timm=1;//test original size 20
 	Timer timer =  new Timer();
 	public Demo() {		
-		setSize(1024/2, 768/2);
+		setSize(500,490);//1024/2, 768/2
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		contentPane = new JPanel();
@@ -76,24 +76,29 @@ public class Demo extends JFrame {
 				switch (e.getKeyCode()) {
 				case KeyEvent.VK_A:
 					player.setLocation(player.getX() - player.size().width, player.getY());
-					contentPane.repaint();
+					if(walldontcrach(player))
+						player.setLocation(player.getX() + player.size().width, player.getY());
 					break;
 				case KeyEvent.VK_D:
 					player.setLocation(player.getX() + player.size().width, player.getY());
-					contentPane.repaint();
+					if(walldontcrach(player))
+						player.setLocation(player.getX() - player.size().width, player.getY());
 					break;
 				case KeyEvent.VK_W:
 					player.setLocation(player.getX(), player.getY() - player.size().height);
-					break;
+					if(walldontcrach(player))
+						player.setLocation(player.getX(), player.getY() + player.size().height);
+						break;
 				case KeyEvent.VK_S:
 					player.setLocation(player.getX(), player.getY() + player.size().height);
-					contentPane.repaint();
-					break;
+					if(walldontcrach(player))
+						player.setLocation(player.getX(), player.getY() - player.size().height);
+						break;
 				case KeyEvent.VK_ESCAPE:
 					System.exit(0);
 					break;
 				}
-
+				contentPane.repaint();
 				if((winner_yet(player, goal)))
 				{
 					walls.stop();timer.cancel();
@@ -123,12 +128,21 @@ public class Demo extends JFrame {
 			}
 		};
 
-		timer.scheduleAtFixedRate(timertask, 0, 10);
+		timer.scheduleAtFixedRate(timertask, 0, 100);
 		
 	}
 	walls walls;
 	
-
+	private boolean walldontcrach(JPanel mover)
+	{
+		for(int i=0;i<walls.wallspoint.size();i++)
+		{
+			if(mover.getLocation().equals(walls.wallspoint.get(i)))
+				return true;
+		}
+		return false;
+		
+	}
 	
 	private void createPlayer(JPanel board, int height, int width) {
 		int rows = board.getHeight() / height, cols = board.getWidth() / width;

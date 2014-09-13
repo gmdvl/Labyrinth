@@ -1,6 +1,9 @@
 package laberinto;
 
 import java.awt.Color;
+import java.awt.List;
+import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
@@ -12,12 +15,14 @@ public class walls extends Thread {
 
 	JPanel contentPane = Demo.contentPane;
 	int dimension =Demo.dimension,i=0;
+	ArrayList<Point> wallspoint=new ArrayList<Point>();
 	boolean fin=true;
 	public void para(){fin=false;}
 	public void run() {
 		//contentPane.removeAll();
 		//while (fin) {
 			wallMaker(contentPane, dimension, dimension);
+			contentPane.repaint();
 		//System.out.println("start ok");
 		//}
 
@@ -40,6 +45,8 @@ public class walls extends Thread {
 						wall.setBounds(pos_x, pos_y, height, width);
 						wall.setBorder(BorderFactory.createLineBorder(Color.darkGray));
 						board.add(wall);
+						wallspoint.add(wall.getLocation());
+						
 					}
 				}
 				
@@ -56,8 +63,10 @@ public class walls extends Thread {
 		for(int i=contentPane.getComponentCount()-1;i>1;i--)
 		{
 			contentPane.remove(i);
+			wallspoint.clear();
 		}
 		wallMaker(contentPane, dimension, dimension);
+		contentPane.repaint();
 	}
 	
 	private boolean validate(JPanel item, int x, int y) {		
