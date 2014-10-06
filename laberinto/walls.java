@@ -1,76 +1,90 @@
-package laberinto;
+package test;
 
 import java.awt.Color;
-import java.awt.List;
-import java.awt.Point;
-import java.util.ArrayList;
+import java.awt.GridLayout;
 import java.util.Random;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-import laberinto.Demo;
+import test.Demo;
 
 public class walls extends Thread {
-
-	JPanel contentPane = Demo.contentPane;
-	int dimension =Demo.dimension,i=0;
-	ArrayList<Point> wallspoint=new ArrayList<Point>();
-	boolean fin=true;
-	public void para(){fin=false;}
-	public void run() {
-		//contentPane.removeAll();
-		//while (fin) {
-			wallMaker(contentPane, dimension, dimension);
-			contentPane.repaint();
-		//System.out.println("start ok");
-		//}
-
+	private JPanel board;
+	private int rows, columns;
+	
+	
+	public walls(JPanel board) {
+		this.board = board;
+		
+		GridLayout layout = (GridLayout) board.getLayout();
+		
+		rows = layout.getRows();
+		columns = layout.getColumns();
+		
+		JPanel player = (JPanel) board.getComponent(Demo.player.y * columns + Demo.player.x);
+		player.setBackground(Color.blue);
+		
+		JPanel goal = (JPanel) board.getComponent(Demo.goal.y * columns + Demo.goal.x);
+		goal.setBackground(Color.red);
 	}
 	
-	private void wallMaker(JPanel board, int height, int width) {
-		int rows = board.getWidth() / width, cols = board.getHeight() / height;
-		int pos_x = 0, pos_y = 0;
-		Random rand=new Random();
-		for(int i = 0; i < rows; i++) {
-			for(int j = 0; j < cols; j++) {
-				
-				boolean ans = (rand.nextInt(2) == 1)? true : false;
-				
-				if(ans) {
-					if(validate(Demo.player, pos_x, pos_y) && validate(Demo.goal, pos_x, pos_y)) {
-						final JPanel wall = new JPanel();
-						wall.setName("wall");
-						wall.setBackground(Color.BLACK);
-						wall.setBounds(pos_x, pos_y, height, width);
-						wall.setBorder(BorderFactory.createLineBorder(Color.darkGray));
-						board.add(wall);
-						wallspoint.add(wall.getLocation());
-						
+	public void run() {
+		wallMaker();
+	}
+	
+	private void wallMaker() {
+		Random rand = new Random();
+		
+	/*	MazeGenerator maze = new MazeGenerator(15, 15);
+		maze.display();
+		boolean[][] table = maze.getTable();*/
+		
+		/*for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < columns; j++) {
+				if(table[i][j]) {
+					Point q = new Point(j, i);
+					
+					if(validate(Demo.player, q) && validate(Demo.goal, q)) {
+						JPanel item = (JPanel) board.getComponent(columns * i + j);
+						item.setBackground(Color.white);
 					}
 				}
-				
-				pos_x += width;
 			}
-			
-			pos_x = 0;
-			pos_y += height;
-		}
+		}*/
 	}
 
-	public void refresh()
-	{
-		for(int i=contentPane.getComponentCount()-1;i>1;i--)
-		{
-			contentPane.remove(i);
-			wallspoint.clear();
+	public void refresh() {
+		for(int i = 0; i < board.getComponentCount(); i++) {
+			JPanel item = (JPanel) board.getComponent(i);
+				
+			Point p = new Point(i % columns, i / columns);
+			if(validate(Demo.player, p) && validate(Demo.goal, p))
+				item.setBackground(Color.black);
 		}
-		wallMaker(contentPane, dimension, dimension);
-		contentPane.repaint();
+		
+		wallMaker();
 	}
 	
-	private boolean validate(JPanel item, int x, int y) {		
-		return item.getX() != x || item.getY() != y;
+	private boolean validate(Point p, Point q) {
+		return p.x != q.x || p.y != q.y;
 	}
-	
+
+	public void update(Point p, Point q) {
+		int x = q.x, y = q.y;
+		
+		if(y >= 0 && y < rows) {
+			if(x >= 0 && x < columns) {
+				JPanel after = (JPanel) board.getComponent(columns * y + x);
+				JPanel before = (JPanel) board.getComponent(columns * p.y + p.x);
+				
+				if(!after.getBackground().equals(Color.black)) {
+					before.setBackground(Color.white);
+					after.setBackground(Color.blue);
+					
+					p.x = x;
+					p.y = y;
+				}
+			}
+		}
+	}
 }

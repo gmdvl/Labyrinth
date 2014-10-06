@@ -1,31 +1,31 @@
-package laberinto;
+package test;
 
-import laberinto.walls;
-
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
-
+@SuppressWarnings("serial")
 public class Demo extends JFrame {
 	private static final Random rand = new Random(); 
 			
-	public static JPanel contentPane, player, goal;
-	private int[][] table;
+	public JPanel contentPane, mazePane;
+	public static Point player;
+	private boolean available;
+	static Point goal;
+	private GridLayout layout; 
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -40,138 +40,124 @@ public class Demo extends JFrame {
 		});
 	}
 
-	public static int dimension = 20/2,timm=1;//test original size 20
-	Timer timer =  new Timer();
-	public Demo() {		
-		setSize(500,490);//1024/2, 768/2
+	private int timm = 1;
+	private Timer timer = new Timer();
+	
+	public Demo() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		contentPane = new JPanel();
-		contentPane.setBackground(Color.GRAY);		
-		contentPane.setLayout(null);
-		contentPane.setSize(this.getHeight(), this.getWidth());
+		contentPane.setBackground(Color.white);		
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(new BorderLayout());
 		setContentPane(contentPane);
 		
+		mazePane = new JPanel();
+		mazePane.setBackground(Color.black);
+		mazePane.setBorder(new LineBorder(Color.black));
+		mazePane.setPreferredSize(new Dimension(600, 600));
+		contentPane.add(mazePane, BorderLayout.CENTER);
 		
+		layout = new GridLayout(31, 31);
+		mazePane.setLayout(layout);
 		
-		createPlayer(contentPane, dimension, dimension);
-		createGoal(contentPane, player, dimension, dimension);
-		//wallMaker(contentPane, dimension, dimension);
+		for(int i = 0; i < 31; i++) {
+			for(int j = 0; j < 31; j++) {
+				JPanel item = new JPanel();
+				item.setBackground(Color.black);
+				mazePane.add(item);
+			}
+		}
+		
+		createPlayer();
+		createGoal();
 		
 		contentPane.setFocusable(true);
 		contentPane.requestFocusInWindow();
 		
+		final walls wall;	
+		
+		wall = new walls(mazePane);
+		
 		contentPane.addKeyListener(new KeyListener() {
-
-			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void keyTyped(KeyEvent e) {}
 			
-			public void keyPressed(KeyEvent e) {//problema al moverse era fijo 20 cambiado a el size del player
+			public void keyReleased(KeyEvent e) {}
+			
+			@SuppressWarnings("deprecation")
+			public void keyPressed(KeyEvent e) {
+				if(available) {
+				
 				switch (e.getKeyCode()) {
-				case KeyEvent.VK_A:
-					player.setLocation(player.getX() - player.size().width, player.getY());
-					if(walldontcrach(player))
-						player.setLocation(player.getX() + player.size().width, player.getY());
-					break;
-				case KeyEvent.VK_D:
-					player.setLocation(player.getX() + player.size().width, player.getY());
-					if(walldontcrach(player))
-						player.setLocation(player.getX() - player.size().width, player.getY());
-					break;
-				case KeyEvent.VK_W:
-					player.setLocation(player.getX(), player.getY() - player.size().height);
-					if(walldontcrach(player))
-						player.setLocation(player.getX(), player.getY() + player.size().height);
+					case KeyEvent.VK_A:
+						wall.update(player, new Point(player.x - 1, player.y));
 						break;
-				case KeyEvent.VK_S:
-					player.setLocation(player.getX(), player.getY() + player.size().height);
-					if(walldontcrach(player))
-						player.setLocation(player.getX(), player.getY() - player.size().height);
+					case KeyEvent.VK_D:
+						wall.update(player, new Point(player.x + 1, player.y));
 						break;
-				case KeyEvent.VK_ESCAPE:
-					System.exit(0);
-					break;
+					case KeyEvent.VK_W:
+						wall.update(player, new Point(player.x, player.y - 1));
+						break;
+					case KeyEvent.VK_S:
+						wall.update(player, new Point(player.x, player.y + 1));
+						break;
+					case KeyEvent.VK_ESCAPE:
+						System.exit(0);
+						break;
 				}
-				contentPane.repaint();
-				if((winner_yet(player, goal)))
-				{
-					walls.stop();timer.cancel();
+
+				if((winner_yet(player, goal))) {
+					wall.stop();
+					timer.cancel();
 					JOptionPane.showMessageDialog(null, "You Won!!!");
+					createPlayer();
+					createGoal();
+					wall.refresh();
+				}
 				}
 			}
 		});
 		
-		
-		walls= new walls();
-		
-		walls.start();
-		//walls.stop();
+		wall.start();
 		TimerTask timertask = new TimerTask() {
-			
-			@SuppressWarnings("deprecation")
-			@Override
 			public void run() {
-				if(timm%30==0)
-				{
-					//System.out.println(contentPane.getComponent(1).getName());
-					
-					walls.refresh();
-					//System.out.println("entra");
-					//timer.cancel();
-				}timm++;
+				if(timm % 30 == 0) {
+					available = false;
+					wall.refresh();
+				}
+				available = true;
+				timm++;
 			}
 		};
-
+		
 		timer.scheduleAtFixedRate(timertask, 0, 100);
 		
-	}
-	walls walls;
-	
-	private boolean walldontcrach(JPanel mover)
-	{
-		for(int i=0;i<walls.wallspoint.size();i++)
-		{
-			if(mover.getLocation().equals(walls.wallspoint.get(i)))
-				return true;
-		}
-		return false;
-		
+		pack();
+		setLocationRelativeTo(null);
 	}
 	
-	private void createPlayer(JPanel board, int height, int width) {
-		int rows = board.getHeight() / height, cols = board.getWidth() / width;
-		
-		player = new JPanel();
-		player.setName("player");
-		player.setBackground(Color.cyan);
-		player.setBounds(rand.nextInt(rows) * height, rand.nextInt(cols) * width, height, width);
-		board.add(player);
+	private walls walls;
+	
+	private void createPlayer() {
+		player = new Point(rand.nextInt(layout.getColumns()), rand.nextInt(layout.getRows()));
 	}
 	
-	private void createGoal(JPanel board, JPanel point, int height, int width) {
-		int rows = board.getWidth() / width, cols = board.getHeight() / height;
-		int pos_x, pos_y;
+	private void createGoal() {
+		goal = new Point();
 		
-		do {
-			pos_x = rand.nextInt(cols) * width;
-			pos_y = rand.nextInt(rows) * height;
-		}while(pos_x == point.getX() || pos_y == point.getY());
+		int rows = layout.getRows(), cols = layout.getColumns();
+		int x, y;
 		
-		goal = new JPanel();
-		goal.setName("goal");
-		goal.setBackground(Color.red);
-		goal.setBounds(pos_x, pos_y, height, width);
-		board.add(goal);
+		do{
+			x = rand.nextInt(cols);
+			y = rand.nextInt(rows);
+		}while(x == player.x || y == player.y);
+		
+		goal.x = x;
+		goal.y = y;
 	}
 
-	private boolean winner_yet(JPanel x, JPanel y)
-	{
-		return x.getLocation().equals(y.getLocation());
+	private boolean winner_yet(Point p, Point q) {
+		return (p.x == q.x) && (p.y == q.y);
 	}
 }
